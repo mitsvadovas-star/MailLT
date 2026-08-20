@@ -2,6 +2,8 @@ name: Build MailLT APK
 
 on:
   workflow_dispatch:
+  push:
+    branches: [ "build/**" ]
   pull_request:
     branches: [ "main" ]
 
