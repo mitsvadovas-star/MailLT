@@ -23,6 +23,11 @@ jobs:
           unzip -t MailLT-build-src.zip
           unzip -q MailLT-build-src.zip
 
+      - name: Enable AndroidX
+        run: |
+          echo "android.useAndroidX=true" > MailLT/gradle.properties
+          echo "android.enableJetifier=true" >> MailLT/gradle.properties
+
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
