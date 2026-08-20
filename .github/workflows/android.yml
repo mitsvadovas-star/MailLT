@@ -1,4 +1,4 @@
-name: Build MailLT APK
+name: Build Edgaro appsas APK
 
 on:
   workflow_dispatch:
@@ -29,6 +29,19 @@ jobs:
           base64 -d /tmp/maillt-1.5.patch.gz.b64 | gzip -d > /tmp/maillt-1.5.patch
           patch --batch -p1 < /tmp/maillt-1.5.patch
 
+      - name: Rename application
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          p = Path('MailLT/app/src/main/res/values/strings.xml')
+          text = p.read_text(encoding='utf-8')
+          text, n = re.subn(r'<string name="app_name">.*?</string>', '<string name="app_name">Edgaro appsas</string>', text, count=1)
+          if n != 1:
+              raise SystemExit('app_name not found')
+          p.write_text(text, encoding='utf-8')
+          PY
+
       - name: Enable AndroidX
         run: |
           echo "android.useAndroidX=true" > MailLT/gradle.properties
@@ -56,11 +69,11 @@ jobs:
         run: gradle --no-daemon assembleDebug
 
       - name: Prepare APK name
-        run: cp MailLT/app/build/outputs/apk/debug/app-debug.apk MailLT-1.5-debug.apk
+        run: cp MailLT/app/build/outputs/apk/debug/app-debug.apk Edgaro-appsas-debug.apk
 
       - name: Upload Actions artifact
         uses: actions/upload-artifact@v4
         with:
-          name: MailLT-1.5-debug-apk
-          path: MailLT-1.5-debug.apk
+          name: Edgaro-appsas-debug-apk
+          path: Edgaro-appsas-debug.apk
           if-no-files-found: error
