@@ -41,13 +41,13 @@ jobs:
         run: gradle --no-daemon assembleDebug
 
       - name: Prepare APK name
-        run: cp MailLT/app/build/outputs/apk/debug/app-debug.apk MailLT-1.1-debug.apk
+        run: cp MailLT/app/build/outputs/apk/debug/app-debug.apk MailLT-1.2-debug.apk
 
       - name: Upload Actions artifact
         uses: actions/upload-artifact@v4
         with:
-          name: MailLT-debug-apk
-          path: MailLT-1.1-debug.apk
+          name: MailLT-1.2-debug-apk
+          path: MailLT-1.2-debug.apk
           if-no-files-found: error
 
       - name: Publish GitHub release
@@ -55,5 +55,5 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release delete v1.1 --yes --cleanup-tag || true
-          gh release create v1.1 MailLT-1.1-debug.apk --title "MailLT 1.1" --notes "Android testavimo APK. IMAP/SMTP, kelios paskyros, bendras Inbox, paieška, Reply, Forward, priedų siuntimas ir saugus paskyros slaptažodžio saugojimas Android Keystore." --target "$GITHUB_SHA"
+          gh release delete v1.2 --yes --cleanup-tag || true
+          gh release create v1.2 MailLT-1.2-debug.apk --title "MailLT 1.2" --notes "Naujas Edison Mail stiliaus dizainas, tamsus navigacijos meniu, HTML laiškų rodymas, HTML siuntimas, išorinių paveikslėlių nustatymas, modernesnis Inbox ir nustatymų ekranas." --target "$GITHUB_SHA"
