@@ -23,6 +23,11 @@ jobs:
           unzip -t MailLT-build-src.zip
           unzip -q MailLT-build-src.zip
 
+      - name: Apply MailLT 1.5 patch
+        run: |
+          base64 -d .patches/1.5.patch.gz.b64 | gzip -d > /tmp/maillt-1.5.patch
+          patch --batch -p1 < /tmp/maillt-1.5.patch
+
       - name: Enable AndroidX
         run: |
           echo "android.useAndroidX=true" > MailLT/gradle.properties
@@ -50,11 +55,11 @@ jobs:
         run: gradle --no-daemon assembleDebug
 
       - name: Prepare APK name
-        run: cp MailLT/app/build/outputs/apk/debug/app-debug.apk MailLT-1.4-debug.apk
+        run: cp MailLT/app/build/outputs/apk/debug/app-debug.apk MailLT-1.5-debug.apk
 
       - name: Upload Actions artifact
         uses: actions/upload-artifact@v4
         with:
-          name: MailLT-1.4-debug-apk
-          path: MailLT-1.4-debug.apk
+          name: MailLT-1.5-debug-apk
+          path: MailLT-1.5-debug.apk
           if-no-files-found: error
