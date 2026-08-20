@@ -16,8 +16,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Extract MailLT source
-        run: unzip -q MailLT-build-src.zip
+      - name: Rebuild MailLT source archive
+        run: |
+          cat .buildsrc/part* > source.b64
+          base64 -d source.b64 > MailLT-build-src.zip
+          unzip -t MailLT-build-src.zip
+          unzip -q MailLT-build-src.zip
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
