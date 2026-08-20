@@ -3,7 +3,7 @@ name: Build MailLT APK
 on:
   workflow_dispatch:
   push:
-    branches: [ "build/**" ]
+    branches: [ "main", "build/**" ]
   pull_request:
     branches: [ "main" ]
 
@@ -11,7 +11,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -40,9 +40,20 @@ jobs:
         working-directory: MailLT
         run: gradle --no-daemon assembleDebug
 
-      - name: Upload APK
+      - name: Prepare APK name
+        run: cp MailLT/app/build/outputs/apk/debug/app-debug.apk MailLT-1.1-debug.apk
+
+      - name: Upload Actions artifact
         uses: actions/upload-artifact@v4
         with:
           name: MailLT-debug-apk
-          path: MailLT/app/build/outputs/apk/debug/app-debug.apk
+          path: MailLT-1.1-debug.apk
           if-no-files-found: error
+
+      - name: Publish GitHub release
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete v1.1 --yes --cleanup-tag || true
+          gh release create v1.1 MailLT-1.1-debug.apk --title "MailLT 1.1" --notes "Android testavimo APK. IMAP/SMTP, kelios paskyros, bendras Inbox, paieška, Reply, Forward, priedų siuntimas ir saugus paskyros slaptažodžio saugojimas Android Keystore." --target "$GITHUB_SHA"
