@@ -29,18 +29,38 @@ jobs:
           base64 -d /tmp/maillt-1.5.patch.gz.b64 | gzip -d > /tmp/maillt-1.5.patch
           patch --batch -p1 < /tmp/maillt-1.5.patch
 
-      - name: Rename application
+      - name: Rename all user-visible branding
         run: |
           python3 - <<'PY'
           from pathlib import Path
-          import re
-          p = Path('MailLT/app/src/main/res/values/strings.xml')
-          text = p.read_text(encoding='utf-8')
-          text, n = re.subn(r'<string name="app_name">.*?</string>', '<string name="app_name">Edgaro appsas</string>', text, count=1)
-          if n != 1:
-              raise SystemExit('app_name not found')
-          p.write_text(text, encoding='utf-8')
+          root = Path('MailLT/app/src/main')
+          changed = []
+          for p in root.rglob('*'):
+              if not p.is_file() or p.suffix.lower() not in {'.java', '.xml'}:
+                  continue
+              try:
+                  text = p.read_text(encoding='utf-8')
+              except Exception:
+                  continue
+              new = text.replace('Mail LT', 'Edgaro appsas')
+              if new != text:
+                  p.write_text(new, encoding='utf-8')
+                  changed.append(str(p))
+          strings = Path('MailLT/app/src/main/res/values/strings.xml')
+          if strings.exists():
+              text = strings.read_text(encoding='utf-8')
+              if 'Edgaro appsas' not in text:
+                  raise SystemExit('app_name rename failed')
+          print('Renamed files:')
+          print('\n'.join(changed))
           PY
+
+      - name: Verify old branding is gone from app UI sources
+        run: |
+          if grep -RIn --include='*.java' --include='*.xml' 'Mail LT' MailLT/app/src/main; then
+            echo 'Old visible Mail LT branding still exists'
+            exit 1
+          fi
 
       - name: Enable AndroidX
         run: |
@@ -69,11 +89,11 @@ jobs:
         run: gradle --no-daemon assembleDebug
 
       - name: Prepare APK name
-        run: cp MailLT/app/build/outputs/apk/debug/app-debug.apk Edgaro-appsas-debug.apk
+        run: cp MailLT/app/build/outputs/apk/debug/app-debug.apk Edgaro-appsas-1.6-debug.apk
 
       - name: Upload Actions artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Edgaro-appsas-debug-apk
-          path: Edgaro-appsas-debug.apk
+          name: Edgaro-appsas-1.6-debug-apk
+          path: Edgaro-appsas-1.6-debug.apk
           if-no-files-found: error
